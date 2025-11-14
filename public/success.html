@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sukses Registrasi Ulang</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- html2canvas untuk screenshot -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- QR Code Generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+  body {
+    background: linear-gradient(135deg, #e3ffe7, #d9e7ff);
+    min-height: 100vh;
+  }
+
+  /* GLASS EFFECT */
+  .glass {
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .door-number {
+    background: linear-gradient(135deg, #ffb5d9, #ff7ab3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    box-shadow: 0 4px 12px rgba(255, 80, 150, 0.3);
+    display: inline-block;
+  }
+
+  #qrCode img {
+    border-radius: 12px;
+    padding: 10px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+
+<body class="flex justify-center items-center py-10 px-4">
+
+<!-- WRAPPER -->
+<div class="w-full max-w-md">
+
+  <!-- CARD UTAMA -->
+  <div id="captureArea" class="glass p-7 rounded-3xl shadow-2xl text-center">
+
+    <h2 class="text-3xl font-extrabold text-green-700 drop-shadow-sm">Registrasi Berhasil 🎉</h2>
+    <p class="mt-1 text-gray-700 text-lg">Anda resmi mendapatkan <b>Souvenir Event</b></p>
+
+    <!-- Divider -->
+    <div class="w-20 h-1 bg-green-500 mx-auto my-4 rounded-full"></div>
+
+    <!-- DOORPRIZE NUMBER -->
+    <p class="text-gray-600 text-sm mb-1">Nomor Doorprize Anda:</p>
+    <span id="doorNum" class="door-number">-</span>
+
+    <!-- QR -->
+    <div class="mt-8 flex flex-col items-center">
+      <p class="text-gray-600 text-sm mb-2">QR Bukti Registrasi</p>
+      <div id="qrCode"></div>
+    </div>
+
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="text-center mt-6 flex flex-col gap-3">
+    <button id="btnScreenshot"
+      class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl shadow-lg font-medium transition">
+      📸 Download Bukti Registrasi
+    </button>
+
+    <a href="/" class="text-gray-700 underline text-sm">Kembali</a>
+  </div>
+
+</div>
+
+<!-- FIREBASE LOGIC -->
+<script type="module">
+import { db } from './js/firebase.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js';
+
+(async ()=>{
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || localStorage.getItem('last_registered');
+  if (!id) return;
+
+  // Fetch data
+  const snap = await getDoc(doc(db, 'participants', id));
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+
+  // Display doorprize
+  document.getElementById('doorNum').innerText = data.doorprize || "-";
+
+  // Generate QR
+  new QRCode(document.getElementById("qrCode"), {
+    text: "REG-ULANG-" + id,
+    width: 130,
+    height: 130
+  });
+
+})();
+</script>
+
+<!-- SCREENSHOT SCRIPT -->
+<script>
+document.getElementById("btnScreenshot").addEventListener("click", async () => {
+  const target = document.getElementById("captureArea");
+
+  html2canvas(target, {
+    scale: 3,
+    backgroundColor: null
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "bukti-registrasi.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+});
+</script>
+
+</body>
+</html>

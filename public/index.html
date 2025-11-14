@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -11,6 +12,23 @@
 
   <!-- Custom Style -->
   <link rel="stylesheet" href="/assets/css/style.css">
+
+  <style>
+    .sponsor-slider {
+      width: max-content;
+      animation: slideLeft 15s linear infinite;
+    }
+
+    @keyframes slideLeft {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+  </style>
 </head>
 
 <body class="bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-100 min-h-screen">
@@ -20,7 +38,7 @@
 
     <!-- LOGO TENGAH -->
     <div class="text-center mb-8">
-      <img src="/assets/img/logo-festara.png" class="w-28 h-28 mx-auto drop-shadow-lg" alt="Logo Festara">
+      <img src="/assets/img/festara.png" class="w-48 h-48 mx-auto drop-shadow-lg" alt="Logo Festara"> 
       <h1 class="text-3xl font-extrabold text-gray-800 mt-4">Registrasi Ulang Festara</h1>
       <p class="text-gray-600 text-sm mt-1">
         Masukkan nama untuk mengambil doorprize.
@@ -31,7 +49,8 @@
     <div class="bg-white/90 backdrop-blur p-6 rounded-xl shadow-xl border border-gray-100">
       <label class="block text-sm font-semibold text-gray-700">Nama lengkap</label>
       <div class="mt-2 flex gap-2">
-        <input id="searchName" class="flex-1 px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-400" placeholder="Contoh: Budi Setiawan" />
+        <input id="searchName" class="flex-1 px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-400"
+          placeholder="Contoh: Budi Setiawan" />
         <button id="btnSearch" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">
           Cari
         </button>
@@ -41,70 +60,84 @@
     </div>
 
     <!-- SPONSOR -->
-    <div class="mt-10 text-center text-gray-600">
-      <p class="text-sm font-semibold">Didukung oleh:</p>
-      <div class="flex justify-center gap-6 mt-3 opacity-80">
-        <img src="/assets/img/sponsor1.png" class="h-10" alt="Sponsor 1">
-        <img src="/assets/img/sponsor2.png" class="h-10" alt="Sponsor 2">
+    <div class="mt-10 text-center text-gray-600 overflow-hidden relative">
+      <p class="text-sm font-semibold mb-3">Didukung oleh:</p>
+
+      <div class="sponsor-slider flex items-center gap-10">
+        <!-- DUPLICATE LIST 2x untuk looping -->
+        <img src="/assets/img/1.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/2.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/3.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/4.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/5.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/6.png" class="h-12 grayscale hover:grayscale-0 transition" />
+
+        <!-- COPY kedua untuk infinite scroll -->
+        <img src="/assets/img/1.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/2.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/3.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/4.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/5.png" class="h-12 grayscale hover:grayscale-0 transition" />
+        <img src="/assets/img/6.png" class="h-12 grayscale hover:grayscale-0 transition" />
       </div>
     </div>
 
   </div><!-- END CONTAINER -->
 
   <!-- AUDIO NOT FOUND -->
-  <audio id="audioNotFound" src="/assets/audio/notfound.mp3" preload="auto"></audio>
+  <audio id="audioNotFound" src="/assets/audio/notFound.mp3" preload="auto"></audio>
 
-<script type="module">
-  import { db, storage } from './js/firebase.js';
-  import {
-    collection, getDocs, doc, getDoc, updateDoc, runTransaction,
-    query, where, limit
-  } from 'https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js';
-  import {
-    ref, uploadString, getDownloadURL
-  } from 'https://www.gstatic.com/firebasejs/9.24.0/firebase-storage.js';
+  <script type="module">
+    import { db, storage } from './js/firebase.js';
+    import {
+      collection, getDocs, doc, getDoc, updateDoc, runTransaction,
+      query, where, limit
+    } from 'https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js';
+    import {
+      ref, uploadString, getDownloadURL
+    } from 'https://www.gstatic.com/firebasejs/9.24.0/firebase-storage.js';
 
-  const elName = document.getElementById('searchName');
-  const btnSearch = document.getElementById('btnSearch');
-  const result = document.getElementById('result');
-  const audioNotFound = document.getElementById('audioNotFound');
+    const elName = document.getElementById('searchName');
+    const btnSearch = document.getElementById('btnSearch');
+    const result = document.getElementById('result');
+    const audioNotFound = document.getElementById('audioNotFound');
 
-  function norm(s){ return (s||'').toString().trim().toLowerCase(); }
+    function norm(s) { return (s || '').toString().trim().toLowerCase(); }
 
-  async function findParticipantByName(name){
-    const snaps = await getDocs(collection(db, 'participants'));
-    const nrm = norm(name);
-    for(const s of snaps.docs){
-      const data = s.data();
-      if(norm(data.name) === nrm) return { id: s.id, data };
+    async function findParticipantByName(name) {
+      const snaps = await getDocs(collection(db, 'participants'));
+      const nrm = norm(name);
+      for (const s of snaps.docs) {
+        const data = s.data();
+        if (norm(data.name) === nrm) return { id: s.id, data };
+      }
+      return null;
     }
-    return null;
-  }
 
-  btnSearch.addEventListener('click', async ()=>{
-    const name = elName.value.trim();
-    if(!name) return alert('Masukkan nama.');
+    btnSearch.addEventListener('click', async () => {
+      const name = elName.value.trim();
+      if (!name) return alert('Masukkan nama.');
 
-    const found = await findParticipantByName(name);
-    if(!found){
-      audioNotFound.play();
+      const found = await findParticipantByName(name);
+      if (!found) {
+        audioNotFound.play();
 
-      result.classList.remove("hidden");
-      result.innerHTML = `
+        result.classList.remove("hidden");
+        result.innerHTML = `
         <div class="p-4 bg-red-100 border border-red-300 rounded-lg text-red-700 font-semibold">
           ❌ Nama tidak terdaftar di sistem.
         </div>
       `;
-      return;
-    }
+        return;
+      }
 
-    renderResult(found);
-  });
+      renderResult(found);
+    });
 
-  function renderResult(found){
-    result.classList.remove('hidden');
+    function renderResult(found) {
+      result.classList.remove('hidden');
 
-    result.innerHTML = `
+      result.innerHTML = `
       <div id="card" class="p-5 bg-white/80 backdrop-blur border rounded-lg shadow">
         <div class="flex justify-between items-start">
           <div>
@@ -112,11 +145,10 @@
             <div class="text-xs text-gray-500">ID: ${found.id}</div>
           </div>
           <div>
-            ${
-              found.data.registered
-              ? '<span class="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-semibold">Sudah</span>'
-              : '<button id="doRegister" class="px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg">Ambil Doorprize</button>'
-            }
+            ${found.data.registered
+          ? '<span class="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-semibold">Sudah</span>'
+          : '<button id="doRegister" class="px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg">Ambil Doorprize</button>'
+        }
           </div>
         </div>
 
@@ -130,70 +162,71 @@
       </div>
     `;
 
-    const btnReg = document.getElementById('doRegister');
-    if(btnReg){
-      btnReg.addEventListener('click', async ()=>{
-        try{ await claimDoorprizeForParticipant(found.id); }
-        catch(err){ alert('Error: ' + err.message); }
+      const btnReg = document.getElementById('doRegister');
+      if (btnReg) {
+        btnReg.addEventListener('click', async () => {
+          try { await claimDoorprizeForParticipant(found.id); }
+          catch (err) { alert('Error: ' + err.message); }
+        });
+      }
+
+      // screenshot
+      document.getElementById('btnScreenshot').addEventListener('click', async () => {
+        const node = document.getElementById('card');
+        const canvas = await html2canvas(node, { scale: 3, backgroundColor: null });
+        const png = canvas.toDataURL('image/png');
+
+        const sref = ref(storage, `proofs/${found.id}_${Date.now()}.png`);
+        await uploadString(sref, png.split(',')[1], 'base64', { contentType: 'image/png' });
+        const url = await getDownloadURL(sref);
+
+        alert("Screenshot tersimpan.\nURL:\n" + url);
       });
     }
 
-    // screenshot
-    document.getElementById('btnScreenshot').addEventListener('click', async ()=>{
-      const node = document.getElementById('card');
-      const canvas = await html2canvas(node, { scale: 3, backgroundColor: null });
-      const png = canvas.toDataURL('image/png');
+    async function claimDoorprizeForParticipant(participantId) {
+      const pRef = doc(db, 'participants', participantId);
+      const pSnap = await getDoc(pRef);
+      if (!pSnap.exists()) throw new Error('Data tidak ditemukan.');
 
-      const sref = ref(storage, `proofs/${found.id}_${Date.now()}.png`);
-      await uploadString(sref, png.split(',')[1], 'base64', { contentType:'image/png' });
-      const url = await getDownloadURL(sref);
+      const pData = pSnap.data();
 
-      alert("Screenshot tersimpan.\nURL:\n" + url);
-    });
-  }
+      if (pData.doorprize) {
+        document.getElementById('info').innerText =
+          '⚠️ Anda sudah pernah mengambil doorprize.';
+        alert('Anda sudah pernah mengambil doorprize.');
+        return;
+      }
 
-  async function claimDoorprizeForParticipant(participantId){
-    const pRef = doc(db, 'participants', participantId);
-    const pSnap = await getDoc(pRef);
-    if(!pSnap.exists()) throw new Error('Data tidak ditemukan.');
+      const doorprizeAssigned = await runTransaction(db, async (tx) => {
+        const q = query(collection(db, 'doorprizes'), where('assignedTo', '==', null), limit(10));
+        const qSnap = await tx.get(q);
+        if (qSnap.empty) throw new Error('Doorprize habis.');
 
-    const pData = pSnap.data();
+        const docs = qSnap.docs;
+        const chosen = docs[Math.floor(Math.random() * docs.length)];
+        const chosenRef = chosen.ref;
+        const chosenData = chosen.data();
 
-    if(pData.doorprize){
-      document.getElementById('info').innerText =
-        '⚠️ Anda sudah pernah mengambil doorprize.';
-      alert('Anda sudah pernah mengambil doorprize.');
-      return;
+        tx.update(chosenRef, {
+          assignedTo: participantId,
+          assignedAt: new Date().toISOString()
+        });
+
+        tx.update(pRef, {
+          registered: true,
+          registeredAt: new Date().toISOString(),
+          doorprize: chosenData.code || chosen.id
+        });
+
+        return { code: chosenData.code || chosen.id };
+      });
+
+      localStorage.setItem('last_registered', participantId);
+      window.location.href = '/success?id=' + encodeURIComponent(participantId);
     }
 
-    const doorprizeAssigned = await runTransaction(db, async(tx)=>{
-      const q = query(collection(db,'doorprizes'), where('assignedTo','==',null), limit(10));
-      const qSnap = await tx.get(q);
-      if(qSnap.empty) throw new Error('Doorprize habis.');
-
-      const docs = qSnap.docs;
-      const chosen = docs[Math.floor(Math.random()*docs.length)];
-      const chosenRef = chosen.ref;
-      const chosenData = chosen.data();
-
-      tx.update(chosenRef, {
-        assignedTo: participantId,
-        assignedAt: new Date().toISOString()
-      });
-
-      tx.update(pRef, {
-        registered: true,
-        registeredAt: new Date().toISOString(),
-        doorprize: chosenData.code || chosen.id
-      });
-
-      return { code: chosenData.code || chosen.id };
-    });
-
-    localStorage.setItem('last_registered', participantId);
-    window.location.href = '/success?id=' + encodeURIComponent(participantId);
-  }
-
-</script>
+  </script>
 </body>
+
 </html>
